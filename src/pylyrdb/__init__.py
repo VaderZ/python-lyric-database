@@ -16,7 +16,7 @@ class Lyric(object):
         self.track = None
         self.text = None
                 
-    def _lyric_retrive(self, artist, track):
+    def __lyric_retrive(self, artist, track):
         url = "http://lyrics.mirkforce.net/cgi-bin/lepserver.cgi?%s"
         request = '<?xml version="1.0"?>\
                    <query agent="pylyrdb" version="1.0">\
@@ -29,7 +29,7 @@ class Lyric(object):
         else:
             return (lyric_dom.getroot().find("song").find("text").text).encode('utf8')
        
-    def _cache_open(self):
+    def __cache_open(self):
         if not self.cache_type:
             return
         elif self.cache_type == "xml":
@@ -50,41 +50,41 @@ class Lyric(object):
                 connection.commit()
             return connection, cursor
                 
-    def _cache_update(self, artist, track, text):
+    def __cache_update(self, artist, track, text):
         if not self.cache_type:
             return
         elif text is None:
             return
         elif self.cache_type == "xml":
-            xml = self._cache_open()
+            xml = self.__cache_open()
             root = xml.getroot()
-            ElementTree.SubElement(root, self._hash_calc(artist, track), artist = artist, track = track)\
+            ElementTree.SubElement(root, self.__hash_calc(artist, track), artist = artist, track = track)\
                                     .text = text
             xml.write(self.xml_cache_file, "utf-8")
         elif self.cache_type == "sql":
-            connection, cursor = self._cache_open()
+            connection, cursor = self.__cache_open()
             cursor.execute("""insert into lyrics 
                         values ("%s","%s","%s","%s")"""\
-                        %(self._hash_calc(artist, track), artist.replace('"','""'),\
+                        %(self.__hash_calc(artist, track), artist.replace('"','""'),\
                          track.replace('"','""'), text.replace('"','""')))
             connection.commit()
             cursor.close()
             connection.close()
             
-    def _cache_retrive(self, artist, track):
+    def __cache_retrive(self, artist, track):
         if not self.cache_type:
             return
         if self.cache_type == "xml":
-            xml = self._cache_open()
+            xml = self.__cache_open()
             root = xml.getroot()
-            if root.find(self._hash_calc(artist, track)) is None:
+            if root.find(self.__hash_calc(artist, track)) is None:
                 return
             else:
-                return root.find(self._hash_calc(artist, track)).text
+                return root.find(self.__hash_calc(artist, track)).text
         if self.cache_type == "sql":
-            connection, cursor = self._cache_open()
+            connection, cursor = self.__cache_open()
             cursor.execute("""select text from lyrics where hash = "%s" """\
-                            % self._hash_calc(artist, track))          
+                            % self.__hash_calc(artist, track))          
             text = cursor.fetchone()
             cursor.close()
             connection.close()
@@ -93,24 +93,24 @@ class Lyric(object):
             else:
                 return
         
-    def _hash_calc(self, artist, track):
+    def __hash_calc(self, artist, track):
         return "".join(re.findall("\w","".join([artist,track]).lower(), re.UNICODE)).replace("_","")
     
-    def _cache_delete(self, artist, track):
+    def __cache_delete(self, artist, track):
         if not self.cache_type:
             return
         elif self.cache_type == "xml":
-            xml = self._cache_open()
+            xml = self.__cache_open()
             root = xml.getroot()
             try:
-                root.remove(root.find(self._hash_calc(artist, track)))
+                root.remove(root.find(self.__hash_calc(artist, track)))
             except AssertionError:
                 pass
             xml.write(self.xml_cache_file,"utf-8")
         elif self.cache_type == "sql":
-            connection, cursor = self._cache_open()
+            connection, cursor = self.__cache_open()
             cursor.execute("""delete from lyrics where hash = "%s" """\
-                           % self._hash_calc(artist, track))
+                           % self.__hash_calc(artist, track))
             connection.commit()
             cursor.close()
             connection.close()
@@ -124,15 +124,15 @@ class Lyric(object):
         self.artist = artist
         self.track = track
         if not self.cache_type:
-            self.text = self._lyric_retrive(artist, track)
-        text = self._cache_retrive(self.artist, self.track)
+            self.text = self.__lyric_retrive(artist, track)
+        text = self.__cache_retrive(self.artist, self.track)
         if text:
             self.text = text
         else:
-            self.text = self._lyric_retrive(self.artist, self.track)
-            self._cache_update(self.artist, self.track, self.text)
+            self.text = self.__lyric_retrive(self.artist, self.track)
+            self.__cache_update(self.artist, self.track, self.text)
         return {"artist":self.artist, "track":self.track, "text": self.text}
     
     def delete(self, artist, track):
         """Delete cached lyric"""
-        self._cache_delete(artist, track)
+        self.__cache_delete(artist, track)
