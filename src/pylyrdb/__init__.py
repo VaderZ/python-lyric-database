@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+__author__ = "Vadim Bobrenok <vader-xai@yandex.ru>"
 
 import urllib
 import os, sys, re
