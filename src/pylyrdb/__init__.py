@@ -116,8 +116,10 @@ class Lyric(object):
             connection.close()
     
     def __str__(self):
-        temp = ["Artist: ", self.artist, "\n\n", "Track: ", self.track, "\n\n", self.text]
-        return "".join(temp)
+        if self.text:
+            return "".join(["Artist: ", self.artist, "\n\n", "Track: ", self.track, "\n\n", self.text])
+        else:
+            return ""
     
     def __call__(self, artist, track):
         """Get the lyric"""
